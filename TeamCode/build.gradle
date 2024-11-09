@@ -30,6 +30,12 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 repositories {
     maven {
         url = 'https://maven.brott.dev/'
