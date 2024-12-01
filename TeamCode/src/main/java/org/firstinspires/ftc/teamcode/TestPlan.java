@@ -16,6 +16,7 @@ public class TestPlan extends LinearOpMode {
         Pose2d beginPose = new Pose2d(0, 0, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         waitForStart();
+        int waitSeconds = 45;
         Vector2d observationDeck = new Vector2d(66,26.2);
         Vector2d a6 = new Vector2d(0,120);
         Vector2d f6 = new Vector2d(100, 120);
@@ -33,19 +34,19 @@ public class TestPlan extends LinearOpMode {
 
                 drive.actionBuilder(beginPose)
                         .strafeTo(a6)
-                        .waitSeconds(30)
+                        .waitSeconds(waitSeconds)
                         .strafeTo(f6)
-                        .waitSeconds(30)
+                        .waitSeconds(waitSeconds)
                         .strafeTo(a6)
-                        .waitSeconds(30)
+                        .waitSeconds(waitSeconds)
                         .turn(Math.toRadians(90))
-                        .waitSeconds(30)
+                        .waitSeconds(waitSeconds)
                         .turn(Math.toRadians(-45))
-                        .waitSeconds(30)
-                        .strafeToLinearHeading(f6,Math.toRadians(0))
-                        .waitSeconds(30)
-                        .strafeToLinearHeading(a6,Math.toRadians(90))
-                        .waitSeconds(30)
+                        .waitSeconds(waitSeconds)
+                        .strafeToLinearHeading(f6,Math.toRadians(90))
+                        .waitSeconds(waitSeconds)
+                        .strafeToLinearHeading(a6,Math.toRadians(180))
+                        .waitSeconds(waitSeconds)
                         .build()));
     }
 }
