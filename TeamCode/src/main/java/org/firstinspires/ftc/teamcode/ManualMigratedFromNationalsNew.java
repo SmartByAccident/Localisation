@@ -31,7 +31,9 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
     IMUController imuController;
     Drive driveTrain;
     VoltageSensor voltageSensor;
-
+    DcMotor MainArm;
+    Button armToggle;
+    int armTarget = 0;
 
  Datalog datalog;
     public void runOpMode(){
@@ -39,6 +41,7 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
         waitForStart();
         while(must()){
             move();
+            arm();
             // telemetry.update();
         }
     }
@@ -85,13 +88,20 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
             imu.resetYaw();
 
     }
+    void arm(){
+        if(armToggle.onPressed()){
+            armTarget = armTarget==0? 400:0;
+            MainArm.setTargetPosition(armTarget);
 
+        }
+
+    }
     double getPowerForVoltage(double voltage){
         return voltage/voltageSensor.getVoltage();
     }
     
     public boolean must(){
-           return opModeIsActive();
+        return opModeIsActive();
     }
 
 
@@ -100,7 +110,13 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
         List<DcMotorImplEx> driveMotors = motorConfigs.stream().map(config -> hardwareMap.get(DcMotorImplEx.class, config)).collect(Collectors.toList());
         driveTrain = new Drive(driveMotors);
         driveTrain.setMotorMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-
+        MainArm = hardwareMap.get(DcMotorEx.class,"MainArm");
+        MainArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MainArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armToggle = new Button(() -> gamepad2.a);
+        MainArm.setTargetPosition(armTarget);
+        MainArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MainArm.setPower(0.3);
         datalog = new Datalog("datalog_01.csv");
 
         //init IMU
