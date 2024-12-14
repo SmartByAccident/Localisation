@@ -33,6 +33,10 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
     VoltageSensor voltageSensor;
     DcMotor MainArm;
     Button armToggle;
+    Button gripperToggle;
+    Button wristToggle;
+    Servo gripper;
+    Servo wrist;
     int armTarget = 0;
 
  Datalog datalog;
@@ -80,6 +84,9 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
         telemetry.addData("SpeedX", diagonal1);
         telemetry.addData("SpeedY", diagonal2);
         telemetry.addData("Speed rotate", speed_rotate);
+        telemetry.addData("trigger",gamepad2.left_trigger);
+        telemetry.addData("button" , wristToggle.lastButtonState);
+        telemetry.addData("WristPosition",wrist.getPosition());
         telemetry.update();
         
         
@@ -94,13 +101,27 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
             MainArm.setTargetPosition(armTarget);
 
         }
-
+        if(gripperToggle.onPressed()){
+            double currentPosition = gripper.getPosition();
+            double newPosition = Math.abs(currentPosition - 0) < 0.01? 0.53 : 0;
+            gripper.setPosition(newPosition);
+        }
+        if(wristToggle.onPressed()){
+            telemetry.addLine("Button Pressed");
+            double currentPosition = wrist.getPosition();
+            double newPosition = Math.abs(currentPosition - 0.1) < 0.01 ? 1: 0.1;
+            wrist.setPosition(newPosition);
+        }else{
+            telemetry.addLine("Not Button Pressed");
+        }
     }
     double getPowerForVoltage(double voltage){
         return voltage/voltageSensor.getVoltage();
     }
     
     public boolean must(){
+
+
         return opModeIsActive();
     }
 
@@ -114,10 +135,20 @@ public class ManualMigratedFromNationalsNew extends LinearOpMode{
         MainArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         MainArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         armToggle = new Button(() -> gamepad2.a);
+        gripperToggle = new Button(() -> gamepad2.right_bumper);
+        gripper = hardwareMap.get(Servo.class,"Gripper");
+        gripper.setPosition(0.53);
+        wristToggle = new Button(() -> gamepad2.left_trigger > 0.5);
+        wrist = hardwareMap.get(Servo.class,"Wrist");
+        wrist.setPosition(0.1);
         MainArm.setTargetPosition(armTarget);
         MainArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         MainArm.setPower(0.3);
+
+
         datalog = new Datalog("datalog_01.csv");
+
+
 
         //init IMU
         imu = hardwareMap.get(IMU.class, "imu");
