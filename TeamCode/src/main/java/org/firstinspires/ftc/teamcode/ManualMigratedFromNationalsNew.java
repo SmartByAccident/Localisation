@@ -47,6 +47,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
     private DcMotor ArmSlider;
     Servo gripper;
     Servo wrist;
+    Servo Swivel;
     int armTarget = 0;
 
     Datalog datalog;
@@ -96,7 +97,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
 
     void arm() {
         if (armToggle.onPressed()) {
-            armTarget = armTarget == 0 ? 270: 0;
+            armTarget = armTarget == 0 ? 340: 0;
             MainArm.setTargetPosition(armTarget);
 
         }
@@ -126,7 +127,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
 
         if (ArmPickup.onPressed()) {
 
-            ArmSlider.setTargetPosition(4192);
+            ArmSlider.setTargetPosition(4800);
         }
 
         if (ArmBasket.onPressed()) {
@@ -180,6 +181,8 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         homePosition = new Button(() -> gamepad2.b);
         ArmSlider = hardwareMap.get(DcMotor.class, "ArmSlider");
         ArmSlider.setDirection(DcMotorSimple.Direction.REVERSE);
+        Swivel = hardwareMap.get(Servo.class,"Swivel");
+        Swivel.setPosition(0.43);
 //        ArmSlider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // ArmSlider.setTargetPosition(1000);
         ArmSlider.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -212,12 +215,6 @@ public class ManualMigratedFromNationalsNew extends OpMode {
 
     @Override
     public void stop() {
-        ArmSlider.setTargetPosition(50);
-        ArmSlider.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        ArmSlider.setPower(0.3);
-        while(ArmSlider.isBusy()){
-            //do nothing
-        }
     }
 
     public class Button {
