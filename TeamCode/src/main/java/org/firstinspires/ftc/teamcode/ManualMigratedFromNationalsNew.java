@@ -1,24 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorImplEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
 import org.firstinspires.ftc.teamcode.hardware.Drive;
-import org.firstinspires.ftc.teamcode.controller.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,25 +22,21 @@ import java.util.stream.Collectors;
 
 public class ManualMigratedFromNationalsNew extends OpMode {
 
-    Button ArmBasket;
-    Button homePosition;
-    Button ArmPickup;
-    IMU imu;
-    IMUController imuController;
     Drive driveTrain;
-    VoltageSensor voltageSensor;
-    Button SliderModePress;
-    Button SliderModeRelease;
-    DcMotor MainArm;
-    Button armToggle;
-    Button gripperToggle;
-    Button wristToggle;
-    private DcMotor ArmSlider;
+    DcMotor pivotMotor;
+    DcMotor sliderMotor;
     Servo gripper;
     Servo wrist;
-    Servo Swivel;
-    int armTarget = 0;
-
+    Servo swivel;
+    Button sliderHighBasket;
+    Button sliderHome;
+    Button sliderPickup;
+    Button sliderMotorModePressed;
+    Button sliderMotorModeReleased;
+    Button pivotControl;
+    Button gripperToggle;
+    Button wristToggle;
+    VoltageSensor voltageSensor;
     Datalog datalog;
 
 
@@ -76,34 +63,33 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         double diagonal1 = -speed * Math.sin(Math.toRadians(angle + 45));
         double diagonal2 = speed * Math.cos(Math.toRadians(angle + 45));
 
-        double gyroPower = 0;
-
-        telemetry.addData("SpeedX", diagonal1);
-        telemetry.addData("SpeedY", diagonal2);
-        telemetry.addData("Speed rotate", speed_rotate);
-        telemetry.addData("Servo pos", wrist.getPosition());
-        telemetry.addData("button", wristToggle.lastButtonState);
-        telemetry.addData("WristPosition", wrist.getPosition());
-        telemetry.addData("ModeSlider" , ArmSlider.getMode());
-        telemetry.addData("SLider Position" , ArmSlider.getCurrentPosition());
-        telemetry.update();
 
 
-        driveTrain.setDiagonalPower(diagonal1, diagonal2, speed_rotate + gyroPower);
-        if (this.gamepad1.touchpad || this.gamepad1.guide)
-            imu.resetYaw();
+
+
+        driveTrain.setDiagonalPower(diagonal1, diagonal2, speed_rotate );
+
 
     }
 
+    private void telemetry() {
+        telemetry.addData("Servo pos", wrist.getPosition());
+        telemetry.addData("button", wristToggle.lastButtonState);
+        telemetry.addData("WristPosition", wrist.getPosition());
+        telemetry.addData("ModeSlider" , sliderMotor.getMode());
+        telemetry.addData("SLider Position" , sliderMotor.getCurrentPosition());
+        telemetry.update();
+    }
+
     void arm() {
-        if (armToggle.onPressed()) {
-            armTarget = armTarget == 0 ? 340: 0;
-            MainArm.setTargetPosition(armTarget);
+        if (pivotControl.onPressed()) {
+            int armTarget = pivotMotor.getTargetPosition() == 0 ? 420: 0;
+            pivotMotor.setTargetPosition(armTarget);
 
         }
         if (gripperToggle.onPressed()) {
             double currentPosition = gripper.getPosition();
-            double newPosition = Math.abs(currentPosition - 0) < 0.01 ? 0.6: 0;
+            double newPosition = Math.abs(currentPosition - 0.12) < 0.01 ? 0.587: 0.12;
             gripper.setPosition(newPosition);
         }
         if (wristToggle.onPressed()) {
@@ -113,104 +99,95 @@ public class ManualMigratedFromNationalsNew extends OpMode {
             wrist.setPosition(newPosition);
         }
 
-        double value = ArmSlider.getCurrentPosition();
-        if (ArmSlider.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+        double value = sliderMotor.getCurrentPosition();
+        if (sliderMotor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
             if (value > 10000)
-                ArmSlider.setPower(Math.min(0, -gamepad2.left_stick_y * 0.4));
+                sliderMotor.setPower(Math.min(0, -gamepad2.left_stick_y * 0.4));
 
             else if (value < 100)
-                ArmSlider.setPower(Math.max(0, -gamepad2.left_stick_y * 0.4));
+                sliderMotor.setPower(Math.max(0, -gamepad2.left_stick_y * 0.4));
             else {
-                ArmSlider.setPower(-gamepad2.left_stick_y * 0.4);
+                sliderMotor.setPower(-gamepad2.left_stick_y * 0.4);
             }
         }
 
-        if (ArmPickup.onPressed()) {
+        if (sliderPickup.onPressed()) {
 
-            ArmSlider.setTargetPosition(4800);
+            sliderMotor.setTargetPosition(4800);
         }
 
-        if (ArmBasket.onPressed()) {
+        if (sliderHighBasket.onPressed()) {
 
-            ArmSlider.setTargetPosition(8000);
+            sliderMotor.setTargetPosition(8000);
         }
-        if(homePosition.onPressed()) {
-            ArmSlider.setTargetPosition(100);
-            wrist.setPosition(0.1);
+        if(sliderHome.onPressed()) {
+            sliderMotor.setTargetPosition(100);
+//            wrist.setPosition(0.1);
 
         }
-            if (SliderModePress.onPressed()) {
-            ArmSlider.setTargetPosition(ArmSlider.getCurrentPosition());
-            ArmSlider.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            ArmSlider.setPower(0.95);
+            if (sliderMotorModePressed.onPressed()) {
+            sliderMotor.setTargetPosition(sliderMotor.getCurrentPosition());
+            sliderMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            sliderMotor.setPower(0.95);
         }
-        if (SliderModeRelease.onReleased()) {
-            ArmSlider.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if (sliderMotorModeReleased.onReleased()) {
+            sliderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
 
     }
 
-    public void must() {
-        return;
-    }
 
-
-    protected void initManualBot() {
+    @Override
+    public void init() {
         List<String> motorConfigs = Arrays.asList("rightFront", "leftFront", "rightBack", "leftBack");
         List<DcMotorImplEx> driveMotors = motorConfigs.stream().map(config -> hardwareMap.get(DcMotorImplEx.class, config)).collect(Collectors.toList());
         driveTrain = new Drive(driveMotors);
         driveTrain.setMotorMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        MainArm = hardwareMap.get(DcMotorEx.class, "MainArm");
+        pivotMotor = hardwareMap.get(DcMotorEx.class, "MainArm");
 //        MainArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        MainArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armToggle = new Button(() -> gamepad2.a);
+        pivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        pivotControl = new Button(() -> gamepad2.a);
         gripperToggle = new Button(() -> gamepad2.left_bumper);
         gripper = hardwareMap.get(Servo.class, "Gripper");
         gripper.setPosition(0.6);
         wristToggle = new Button(() -> gamepad2.left_trigger > 0.5);
-        SliderModePress = new Button(() -> gamepad2.right_bumper);
-        SliderModeRelease = new Button(() -> gamepad2.right_bumper);
+        sliderMotorModePressed = new Button(() -> gamepad2.right_bumper);
+        sliderMotorModeReleased = new Button(() -> gamepad2.right_bumper);
         wrist = hardwareMap.get(Servo.class, "Wrist");
         wrist.setPosition(0.1);
-        MainArm.setTargetPosition(armTarget);
-        MainArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        MainArm.setPower(0.3);
-        ArmBasket = new Button(()->gamepad2.y);
-        ArmPickup = new Button(()->gamepad2.x);
-        homePosition = new Button(() -> gamepad2.b);
-        ArmSlider = hardwareMap.get(DcMotor.class, "ArmSlider");
-        ArmSlider.setDirection(DcMotorSimple.Direction.REVERSE);
-        Swivel = hardwareMap.get(Servo.class,"Swivel");
-        Swivel.setPosition(0.43);
+        pivotMotor.setTargetPosition(0);
+        pivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotMotor.setPower(0.3);
+        sliderHighBasket = new Button(()->gamepad2.y);
+        sliderPickup = new Button(()->gamepad2.x);
+        sliderHome = new Button(() -> gamepad2.b);
+        sliderMotor = hardwareMap.get(DcMotor.class, "ArmSlider");
+        sliderMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        swivel = hardwareMap.get(Servo.class,"Swivel");
+        swivel.setPosition(0.43);
 //        ArmSlider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // ArmSlider.setTargetPosition(1000);
-        ArmSlider.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        ArmSlider.setPower(0);
+        sliderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        sliderMotor.setPower(0);
 
         datalog = new Datalog("datalog_01.csv");
 
 
-        //init IMU
-        imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.FORWARD, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
-        // init voltage Sensor
+        //Init voltageSensor
         voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         //create controllers
-        imuController = new IMUController(imu, driveTrain);
-        // DistanceController distanceController = new DistanceController(driveTrain);
-    }
 
-    @Override
-    public void init() {
-        initManualBot();
+        // DistanceController distanceController = new DistanceController(driveTrain);
+
     }
 
     @Override
     public void loop() {
         move();
         arm();
-        telemetry.update();
+        telemetry();
+
     }
 
     @Override
