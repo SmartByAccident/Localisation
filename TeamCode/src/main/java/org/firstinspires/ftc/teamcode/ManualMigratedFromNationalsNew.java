@@ -95,9 +95,10 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         if (wristToggle.onPressed()) {
 
             double currentPosition = wrist.getPosition();
-            double newPosition = Math.abs(currentPosition - 0.1) < 0.01 ? 1 : 0.1;
+            double newPosition = Math.abs(currentPosition - 1) < 0.01 ? 0.1 : 1;
             wrist.setPosition(newPosition);
         }
+
 
         double value = sliderMotor.getCurrentPosition();
         if (sliderMotor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
@@ -113,12 +114,13 @@ public class ManualMigratedFromNationalsNew extends OpMode {
 
         if (sliderPickup.onPressed()) {
 
-            sliderMotor.setTargetPosition(4800);
+            sliderMotor.setTargetPosition(7000);
         }
 
         if (sliderHighBasket.onPressed()) {
 
-            sliderMotor.setTargetPosition(8000);
+            sliderMotor.setTargetPosition(10000);
+            wrist.setPosition(0.75);
         }
         if(sliderHome.onPressed()) {
             sliderMotor.setTargetPosition(100);
