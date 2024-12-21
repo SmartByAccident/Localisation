@@ -36,12 +36,13 @@ public class ManualMigratedFromNationalsNew extends OpMode {
     Button pivotControl;
     Button gripperToggle;
     Button wristToggle;
+    Button swivelToggle;
     VoltageSensor voltageSensor;
     Datalog datalog;
 
 
     void move() {
-        double limit = 0.80;
+        double limit = 0.96;
         double speed_y = limit * this.gamepad1.left_stick_y;
         double speed_x = -limit * this.gamepad1.left_stick_x;
         double speed_rotate = -0.6 * this.gamepad1.right_stick_x;
@@ -95,7 +96,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         if (wristToggle.onPressed()) {
 
             double currentPosition = wrist.getPosition();
-            double newPosition = Math.abs(currentPosition - 1) < 0.01 ? 0.1 : 1;
+            double newPosition = Math.abs(currentPosition - 1) < 0.01 ? 0.75 : 1;
             wrist.setPosition(newPosition);
         }
 
@@ -120,7 +121,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         if (sliderHighBasket.onPressed()) {
 
             sliderMotor.setTargetPosition(10000);
-            wrist.setPosition(0.75);
+
         }
         if(sliderHome.onPressed()) {
             sliderMotor.setTargetPosition(100);
@@ -136,7 +137,11 @@ public class ManualMigratedFromNationalsNew extends OpMode {
             sliderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
-
+        if(swivelToggle.onPressed()){
+            double currentPosition = swivel.getPosition();
+            double newPosition = Math.abs(currentPosition - 1) < 0.01 ? 0.43 : 1;
+            swivel.setPosition(newPosition);
+        }
     }
 
 
@@ -150,7 +155,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
 //        MainArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         pivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         pivotControl = new Button(() -> gamepad2.a);
-        gripperToggle = new Button(() -> gamepad2.left_bumper);
+        gripperToggle = new Button(() -> gamepad1.left_bumper);
         gripper = hardwareMap.get(Servo.class, "Gripper");
         gripper.setPosition(0.6);
         wristToggle = new Button(() -> gamepad2.left_trigger > 0.5);
@@ -168,6 +173,7 @@ public class ManualMigratedFromNationalsNew extends OpMode {
         sliderMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         swivel = hardwareMap.get(Servo.class,"Swivel");
         swivel.setPosition(0.43);
+        swivelToggle = new Button(() -> gamepad1.a);
 //        ArmSlider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // ArmSlider.setTargetPosition(1000);
         sliderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
